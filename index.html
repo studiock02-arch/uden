@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dice Remote Control - Cah Metro</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+            background: linear-gradient(135deg, #7c5bc9 0%, #8b6fd9 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            max-width: 448px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .title {
+            font-size: 28px;
+            font-weight: bold;
+            color: #7c5bc9;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .time-box {
+            background: #3b9ff3;
+            color: white;
+            border-radius: 8px;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 16px;
+            font-weight: 600;
+        }
+
+        .status-box {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px;
+            margin-bottom: 24px;
+        }
+
+        .status-indicator {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #22c55e;
+            animation: pulse 2s infinite;
+        }
+
+        .status-indicator.disabled {
+            background: #9ca3af;
+            animation: none;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .status-text {
+            color: #22c55e;
+            font-weight: 600;
+        }
+
+        .status-text.disabled {
+            color: #9ca3af;
+        }
+
+        .input-display {
+            width: 100%;
+            height: 56px;
+            border: 2px solid #7c5bc9;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 32px;
+            font-family: 'Courier New', monospace;
+            margin-bottom: 16px;
+            padding: 8px;
+            background: white;
+        }
+
+        .input-display.disabled {
+            opacity: 0.5;
+            border-color: #d1d5db;
+        }
+
+        .number-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .number-btn {
+            height: 64px;
+            border: none;
+            border-radius: 8px;
+            background: #7c5bc9;
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .number-btn:hover:not(:disabled) {
+            background: #6b4ab8;
+            transform: scale(1.05);
+        }
+
+        .number-btn:active:not(:disabled) {
+            transform: scale(0.95);
+        }
+
+        .number-btn:disabled {
+            background: #d1d5db;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .action-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .action-btn {
+            height: 56px;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .clear-btn {
+            background: #ef4444;
+            color: white;
+        }
+
+        .clear-btn:hover:not(:disabled) {
+            background: #dc2626;
+        }
+
+        .send-btn {
+            background: #22c55e;
+            color: white;
+        }
+
+        .send-btn:hover:not(:disabled) {
+            background: #16a34a;
+        }
+
+        .action-btn:active:not(:disabled) {
+            transform: scale(0.95);
+        }
+
+        .action-btn:disabled {
+            background: #d1d5db;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .result-box {
+            width: 100%;
+            height: 56px;
+            background: rgba(34, 197, 94, 0.1);
+            border: 2px solid #22c55e;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: 600;
+            color: #22c55e;
+            margin-bottom: 16px;
+            display: none;
+        }
+
+        .result-box.show {
+            display: flex;
+        }
+
+        .footer {
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+            padding-top: 16px;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .footer p {
+            margin: 4px 0;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1f2937;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            display: none;
+            z-index: 1000;
+        }
+
+        .toast.show {
+            display: block;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateX(-50%) translateY(100px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(-50%) translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .toast.success {
+            background: #22c55e;
+        }
+
+        .toast.error {
+            background: #ef4444;
+        }
+
+        .toast.warning {
+            background: #f59e0b;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 class="title">Dice Hack Cah Metro</h1>
+            <p class="subtitle">Versi Monitored - Target: Siap</p>
+        </div>
+
+        <div class="time-box">
+            <span>⏰</span>
+            <span id="time">Waktu Tersisa: 00:00:00</span>
+        </div>
+
+        <div class="status-box">
+            <div class="status-indicator" id="statusIndicator"></div>
+            <span class="status-text" id="statusText">Remot Terhubung</span>
+        </div>
+
+        <input type="text" id="display" class="input-display" placeholder="Masukkan angka" readonly maxlength="3">
+
+        <div class="number-grid">
+            <button class="number-btn" onclick="addNumber(1)">1</button>
+            <button class="number-btn" onclick="addNumber(2)">2</button>
+            <button class="number-btn" onclick="addNumber(3)">3</button>
+            <button class="number-btn" onclick="addNumber(4)">4</button>
+            <button class="number-btn" onclick="addNumber(5)">5</button>
+            <button class="number-btn" onclick="addNumber(6)">6</button>
+        </div>
+
+        <div class="action-grid">
+            <button class="action-btn clear-btn" onclick="clearInput()">Hapus</button>
+            <button class="action-btn send-btn" onclick="sendData()">Kirim</button>
+        </div>
+
+        <div id="result" class="result-box">
+            Data Diterima: <span id="lastSent"></span>
+        </div>
+
+        <div class="footer">
+            <p>Aplikasi ini dimonitor secara real-time</p>
+            <p>Data dikirim ke: Aplikasi Dadu</p>
+            <p style="font-weight: 600;">Kepemilikan Bisa Memantau Pergerakan Anda</p>
+        </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+
+    <script>
+        // Initialize Firebase
+        const firebaseConfig = {
+            databaseURL: "https://hilo-6b84b-default-rtdb.firebaseio.com/"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        let inputValue = '';
+        let isEnabled = true;
+        const display = document.getElementById('display');
+        const resultBox = document.getElementById('result');
+        const lastSentSpan = document.getElementById('lastSent');
+        const toast = document.getElementById('toast');
+        const statusIndicator = document.getElementById('statusIndicator');
+        const statusText = document.getElementById('statusText');
+
+        // Listen to status changes from Firebase
+        database.ref('dicersd/status').on('value', (snapshot) => {
+            const status = snapshot.val();
+            isEnabled = status !== null ? status.enabled : true;
+            updateUIStatus();
+        });
+
+        function updateUIStatus() {
+            const buttons = document.querySelectorAll('.number-btn, .action-btn');
+            
+            if (isEnabled) {
+                statusIndicator.classList.remove('disabled');
+                statusText.classList.remove('disabled');
+                statusText.textContent = 'Remot Terhubung';
+                display.classList.remove('disabled');
+                buttons.forEach(btn => btn.disabled = false);
+            } else {
+                statusIndicator.classList.add('disabled');
+                statusText.classList.add('disabled');
+                statusText.textContent = 'Remot Terputus';
+                display.classList.add('disabled');
+                buttons.forEach(btn => btn.disabled = true);
+                showToast('Aplikasi dimatikan dari monitoring', 'warning');
+            }
+        }
+
+        // Update time
+        function updateTime() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            document.getElementById('time').textContent = `Waktu Tersisa: ${hours}:${minutes}:${seconds}`;
+        }
+        setInterval(updateTime, 1000);
+        updateTime();
+
+        function addNumber(num) {
+            if (!isEnabled) {
+                showToast('Aplikasi sedang dimatikan', 'error');
+                return;
+            }
+
+            if (inputValue.length >= 3) {
+                inputValue = num.toString();
+            } else {
+                inputValue += num;
+            }
+            display.value = inputValue;
+        }
+
+        function clearInput() {
+            if (!isEnabled) return;
+            inputValue = '';
+            display.value = '';
+            showToast('Input dibersihkan', 'success');
+        }
+
+        function sendData() {
+            if (!isEnabled) {
+                showToast('Aplikasi sedang dimatikan', 'error');
+                return;
+            }
+
+            if (inputValue.length !== 3) {
+                showToast('Masukkan 3 angka (1-6)', 'error');
+                return;
+            }
+
+            const numbers = inputValue.split('');
+            const isValid = numbers.every(n => {
+                const num = parseInt(n);
+                return num >= 1 && num <= 6;
+            });
+
+            if (!isValid) {
+                showToast('Angka harus antara 1-6', 'error');
+                return;
+            }
+
+            // Kirim ke Firebase
+            const timestamp = new Date().toISOString();
+            const dataToSend = {
+                value: inputValue,
+                timestamp: timestamp,
+                timestampDisplay: new Date().toLocaleString('id-ID')
+            };
+
+            Promise.all([
+                database.ref('dicersd/results').set(inputValue),
+                database.ref('dicersd/history').push(dataToSend)
+            ])
+            .then(() => {
+                lastSentSpan.textContent = inputValue;
+                resultBox.classList.add('show');
+                showToast(`Data terkirim: ${inputValue}`, 'success');
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+                showToast('Gagal mengirim data', 'error');
+            });
+        }
+
+        function showToast(message, type = 'success') {
+            toast.textContent = message;
+            toast.className = `toast show ${type}`;
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // Enter key support
+        document.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendData();
+            }
+        });
+
+        // Initialize status
+        database.ref('dicersd/status').once('value', (snapshot) => {
+            if (!snapshot.exists()) {
+                database.ref('dicersd/status').set({ enabled: true });
+            }
+        });
+    </script>
+</body>
+</html>
