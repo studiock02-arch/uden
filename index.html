@@ -491,11 +491,12 @@
         // Initialize status
         database.ref('dicersd/status').once('value', (snapshot) => {
             if (!snapshot.exists()) {
-                database.ref('dicersd/status').set({ enabled: false });
+                database.ref('dicersd/status').set({ enabled: true });
             }
         });
     </script>
 </body>
 </html>
+
 
 
